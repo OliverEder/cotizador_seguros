@@ -1,5 +1,7 @@
 import React, {useState} from 'react';
 import styled from '@emotion/styled';
+import PropTypes from 'prop-types';
+import {obtenerDiferenciaYear, calcularMarca, obtenerPlan} from '../helper';
 
 const Campo = styled.div`
         display:flex;
@@ -49,7 +51,7 @@ const Error = styled.div`
     margin-bottom: 2rem;
 `;
 
-const Formulario = () => {
+const Formulario = ({guardarResumen, guardarCargando}) => {
     const [datos, guardarDatos] = useState({
         marca:"",
         year:"",
@@ -59,11 +61,7 @@ const Formulario = () => {
     const [error, guardarError] = useState(false);
   
     //extraer los valores del state
-    const {
-        marca,
-        year,
-        plan
-    } = datos;
+    const { marca, year, plan } = datos;
 
     //Leer los datos del formulario y colocarlos en el state
     const obtenerInformacion = e => {
@@ -87,17 +85,27 @@ const Formulario = () => {
         guardarError(false);
 
         //obtener la diferencia de años
-
+        const diferencia = obtenerDiferenciaYear(year);
+        //una base de de 2000
+        let resultado = 2000;
         //por cada año hay que restar el 3% del valor
-
+        resultado -= ((diferencia*3) * resultado) / 100
         // americano 15%
-        //asiatico 5%
+        // asiatico 5%
         // Europeo 30%
-
+        resultado = resultado * calcularMarca(marca);
         //Basico 20%
         //Completo 50%
-
+        resultado = parseFloat(resultado * obtenerPlan(plan)).toFixed(2) ;
+        guardarCargando(true);
         //total
+        setTimeout(()=>{
+            guardarResumen({
+                cotizacion: Number(resultado),
+                datos
+            });
+            guardarCargando(false);
+        }, 3000);
     }
 
     return ( 
@@ -139,7 +147,7 @@ const Formulario = () => {
                 </Select>
             </Campo>
             <Campo>
-                <Label>Pan</Label>
+                <Label>Plan</Label>
                 <InputRadio
                     type="radio"
                     name="plan"
@@ -160,5 +168,9 @@ const Formulario = () => {
         </form>
     );
 }
- 
+Formulario.propTypes = {
+    guardarResumen: PropTypes.func.isRequired, 
+    guardarCargando: PropTypes.func.isRequired
+}
+
 export default Formulario;
